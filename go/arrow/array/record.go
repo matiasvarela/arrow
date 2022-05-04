@@ -355,7 +355,6 @@ func (b *RecordBuilder) UnmarshalJSON(data []byte) error {
 			return err
 		}
 
-		key := keyTok.(string)
 		key, ok := keyTok.(string)
 		if !ok {
 			continue
