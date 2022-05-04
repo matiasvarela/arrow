@@ -356,10 +356,10 @@ func (b *RecordBuilder) UnmarshalJSON(data []byte) error {
 		}
 
 		key := keyTok.(string)
-		//key, ok := keyTok.(string)
-		//if !ok {
-		//	continue
-		//}
+		key, ok := keyTok.(string)
+		if !ok {
+			continue
+		}
 		if keylist[key] {
 			return fmt.Errorf("key %s shows up twice in row to be decoded", key)
 		}
