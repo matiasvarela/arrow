@@ -334,6 +334,14 @@ func (b *StructBuilder) unmarshalOne(dec *json.Decoder) error {
 				return err
 			}
 		}
+		for _, field := range b.dtype.(*arrow.StructType).Fields() {
+			idx, _ := b.dtype.(*arrow.StructType).FieldIdx(field.Name)
+			if _, hasKey := keylist[field.Name]; !hasKey {
+				//fmt.Println("Adding null to " + field.Name)
+				b.fields[idx].AppendNull()
+			}
+		}
+
 		// consume '}'
 		_, err := dec.Token()
 		return err
@@ -345,6 +353,7 @@ func (b *StructBuilder) unmarshalOne(dec *json.Decoder) error {
 			Struct: fmt.Sprint(b.dtype),
 		}
 	}
+
 	return nil
 }
 

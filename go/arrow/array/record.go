@@ -160,13 +160,15 @@ func (rec *simpleRecord) validate() error {
 	for i, arr := range rec.arrs {
 		f := rec.schema.Field(i)
 		if int64(arr.Len()) < rec.rows {
-			return fmt.Errorf("arrow/array: mismatch number of rows in column %q: got=%d, want=%d",
+			return fmt.Errorf(
+				"arrow/array: mismatch number of rows in column %q: got=%d, want=%d",
 				f.Name,
 				arr.Len(), rec.rows,
 			)
 		}
 		if !arrow.TypeEqual(f.Type, arr.DataType()) {
-			return fmt.Errorf("arrow/array: column %q type mismatch: got=%v, want=%v",
+			return fmt.Errorf(
+				"arrow/array: column %q type mismatch: got=%v, want=%v",
 				f.Name,
 				arr.DataType(), f.Type,
 			)
@@ -335,7 +337,15 @@ func (b *RecordBuilder) UnmarshalJSON(data []byte) error {
 	}
 
 	if delim, ok := t.(json.Delim); !ok || delim != '{' {
-		return fmt.Errorf("record should start with '{', not %s", t)
+		return nil
+		//if string(data[:1]) == "}" {
+		//	fmt.Println("Record started with } proceeding")
+		//	return b.UnmarshalJSON(data[1:])
+		//}
+		//fmt.Printf("record should start with '{', not %s", t)
+		//log.Println(string(data))
+		//return nil
+		//return fmt.Errorf("record should start with '{', not %s", t)
 	}
 
 	keylist := make(map[string]bool)
@@ -346,6 +356,10 @@ func (b *RecordBuilder) UnmarshalJSON(data []byte) error {
 		}
 
 		key := keyTok.(string)
+		//key, ok := keyTok.(string)
+		//if !ok {
+		//	continue
+		//}
 		if keylist[key] {
 			return fmt.Errorf("key %s shows up twice in row to be decoded", key)
 		}
