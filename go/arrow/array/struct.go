@@ -355,7 +355,6 @@ func (b *StructBuilder) unmarshalOne(dec *json.Decoder) error {
 			Struct: fmt.Sprint(b.dtype),
 		}
 	}
-
 	return nil
 }
 
