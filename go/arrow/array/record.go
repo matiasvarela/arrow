@@ -160,15 +160,13 @@ func (rec *simpleRecord) validate() error {
 	for i, arr := range rec.arrs {
 		f := rec.schema.Field(i)
 		if int64(arr.Len()) < rec.rows {
-			return fmt.Errorf(
-				"arrow/array: mismatch number of rows in column %q: got=%d, want=%d",
+			return fmt.Errorf("arrow/array: mismatch number of rows in column %q: got=%d, want=%d",
 				f.Name,
 				arr.Len(), rec.rows,
 			)
 		}
 		if !arrow.TypeEqual(f.Type, arr.DataType()) {
-			return fmt.Errorf(
-				"arrow/array: column %q type mismatch: got=%v, want=%v",
+			return fmt.Errorf("arrow/array: column %q type mismatch: got=%v, want=%v",
 				f.Name,
 				arr.DataType(), f.Type,
 			)
