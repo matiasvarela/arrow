@@ -334,10 +334,12 @@ func (b *StructBuilder) unmarshalOne(dec *json.Decoder) error {
 				return err
 			}
 		}
+
+		// Add null values to all fields that are presented in schema fields but were not presented in input data
+		// TODO: Check whether the field is actually optional
 		for _, field := range b.dtype.(*arrow.StructType).Fields() {
 			idx, _ := b.dtype.(*arrow.StructType).FieldIdx(field.Name)
 			if _, hasKey := keylist[field.Name]; !hasKey {
-				//fmt.Println("Adding null to " + field.Name)
 				b.fields[idx].AppendNull()
 			}
 		}
