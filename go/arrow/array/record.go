@@ -337,15 +337,7 @@ func (b *RecordBuilder) UnmarshalJSON(data []byte) error {
 	}
 
 	if delim, ok := t.(json.Delim); !ok || delim != '{' {
-		return nil
-		//if string(data[:1]) == "}" {
-		//	fmt.Println("Record started with } proceeding")
-		//	return b.UnmarshalJSON(data[1:])
-		//}
-		//fmt.Printf("record should start with '{', not %s", t)
-		//log.Println(string(data))
-		//return nil
-		//return fmt.Errorf("record should start with '{', not %s", t)
+		return fmt.Errorf("record should start with '{', not %s", t)
 	}
 
 	keylist := make(map[string]bool)
@@ -355,10 +347,7 @@ func (b *RecordBuilder) UnmarshalJSON(data []byte) error {
 			return err
 		}
 
-		key, ok := keyTok.(string)
-		if !ok {
-			continue
-		}
+		key := keyTok.(string)
 		if keylist[key] {
 			return fmt.Errorf("key %s shows up twice in row to be decoded", key)
 		}
