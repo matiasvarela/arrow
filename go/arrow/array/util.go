@@ -157,6 +157,38 @@ func FromJSON(mem memory.Allocator, dt arrow.DataType, r io.Reader, opts ...From
 	return bldr.NewArray(), dec.InputOffset(), nil
 }
 
+func FromJSONMultipleDocuments(mem memory.Allocator, dt arrow.DataType, r io.Reader, opts ...FromJSONOption) (arr arrow.Array, offset int64, err error) {
+	var cfg fromJSONCfg
+	for _, o := range opts {
+		o(&cfg)
+	}
+
+	if cfg.startOffset != 0 {
+		seeker, ok := r.(io.ReadSeeker)
+		if !ok {
+			return nil, 0, errors.New("using StartOffset option requires reader to be a ReadSeeker, cannot seek")
+		}
+
+		seeker.Seek(cfg.startOffset, io.SeekStart)
+	}
+
+	bldr := NewBuilder(mem, dt)
+	defer bldr.Release()
+
+	dec := json.NewDecoder(r)
+	defer func() {
+		if errors.Is(err, io.EOF) {
+			err = fmt.Errorf("failed parsing json: %w", io.ErrUnexpectedEOF)
+		}
+	}()
+
+	if err = bldr.unmarshal(dec); err != nil {
+		return nil, dec.InputOffset(), err
+	}
+
+	return bldr.NewArray(), dec.InputOffset(), nil
+}
+
 // RecordToStructArray constructs a struct array from the columns of the record batch
 // by referencing them, zero-copy.
 func RecordToStructArray(rec arrow.Record) *Struct {
@@ -192,6 +224,17 @@ func RecordFromStructArray(in *Struct, schema *arrow.Schema) arrow.Record {
 func RecordFromJSON(mem memory.Allocator, schema *arrow.Schema, r io.Reader, opts ...FromJSONOption) (arrow.Record, int64, error) {
 	st := arrow.StructOf(schema.Fields()...)
 	arr, off, err := FromJSON(mem, st, r, opts...)
+	if err != nil {
+		return nil, off, err
+	}
+	defer arr.Release()
+
+	return RecordFromStructArray(arr.(*Struct), schema), off, nil
+}
+
+func RecordFromJSONMultipleDocuments(mem memory.Allocator, schema *arrow.Schema, r io.Reader, opts ...FromJSONOption) (arrow.Record, int64, error) {
+	st := arrow.StructOf(schema.Fields()...)
+	arr, off, err := FromJSONMultipleDocuments(mem, st, r, opts...)
 	if err != nil {
 		return nil, off, err
 	}
